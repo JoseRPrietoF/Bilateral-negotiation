@@ -37,7 +37,7 @@ public class ElAgenteVicente extends UPVAgent {
 		
 		// tit for tat
 		memoria = new ArrayList<Bid>();
-		num_delta = 5;
+		num_delta = 8;
 		num_pasos = 0;
 		//fin de tit for tat
 		
@@ -50,6 +50,10 @@ public class ElAgenteVicente extends UPVAgent {
 	}
 
 	public boolean acceptOffer(Bid offer) {
+		// En els últims instants aceptem qualsevol oferta
+		if (getTime()>0.99) {
+			return true;
+		}
 		// Añadimos en la lista
 		this.memoria.add(offer);
 		
@@ -84,13 +88,20 @@ public class ElAgenteVicente extends UPVAgent {
 			S = 1 - (1 - RU) * Math.pow(getTime(), 1.0 / beta);
 		}else {
 			// Tit for tat
-			Bid delta_numerador = memoria.get(memoria.size()-num_delta+1);
-			Bid delta_denominador = memoria.get(memoria.size()-num_delta);
+			// Bid delta_numerador = memoria.get(memoria.size()-num_delta+1);
+			// Bid delta_denominador = memoria.get(memoria.size()-num_delta);
 			
-			double u_delta_numerador = 1 - getUtility(delta_numerador);
-			double u_delta_denominador = 1 - getUtility(delta_denominador);
+			// double u_delta_numerador = 1 - getUtility(delta_numerador);
+			// double u_delta_denominador = 1 - getUtility(delta_denominador);
 			
-			double max = Math.max(RU,  (u_delta_numerador/u_delta_denominador) * getUtility(getLastOpponentOffer()));
+			// Test promedio de delta anteriores
+			double u_delta_numerador = 1 - getPromedio(memoria.size()-(int)num_delta/2, memoria.size());
+			double u_delta_denominador = 1 - getPromedio(memoria.size()-num_delta, memoria.size()-(int)num_delta/2);
+			
+			// Absoluto
+			//double max = Math.max(RU, S -(u_delta_numerador - u_delta_denominador));
+			// Promediado
+			double max = Math.max(RU,  (u_delta_numerador/u_delta_denominador) * S);
 			
 			S = Math.min(1, max);
 			// Baixa masa rapid! de primeras baixa a 0.6 (RU)
@@ -107,6 +118,14 @@ public class ElAgenteVicente extends UPVAgent {
 			print("Len memoria: " + memoria.size());	
 		}
 	}
+
+	private double getPromedio(int ini, int fin) {
+		double res = 0.0;
+		for (int i = ini; i < fin; i++) {
+			res += getUtility(memoria.get(i));
+		}
+	return res/(fin-ini);
+}
 
 	protected void print(String s) {
 		System.out.println(s);
