@@ -11,7 +11,6 @@ public class ElAgenteVicente extends UPVAgent {
 	double betainicial;
 	double RU;
 	double N = 5;
-	double umbralCambio;
 
 	boolean _DEBUG = true;
 	int num_pasos;
@@ -20,6 +19,12 @@ public class ElAgenteVicente extends UPVAgent {
 	int num_delta; // Instantes de tiempo a mirar atrás.
 
 	double max_incr = 0.07; // incremento maximo de la variable
+	
+	double CHANGE_RU = 1;
+	double CHANGE_MAX_INCR = 1.1;
+	ArrayList<Boolean> cambios;
+	int max_cambios = 5;
+	double tiempo_camb = 0.60; // a partir de este iempo se hacen cambios
 
 	public void initialize() {
 		last_moment_offer = null;
@@ -41,17 +46,25 @@ public class ElAgenteVicente extends UPVAgent {
 
 		beta = 0.4;
 		betainicial = 0.4;
+		
+		// Variables para cambiar RU y max_incr
+		CHANGE_RU = 0.97; // no s'empra encara
+		CHANGE_MAX_INCR = 1.10;
+		cambios = new ArrayList<Boolean>();
+		for (int i=0; i<max_cambios; i++) {
+			cambios.add(true);
+		}
+		
 		RU = 0.6;
 		S = 0.99;
-		umbralCambio = 0.9;
 		update();
 	}
 
 	public boolean acceptOffer(Bid offer) {
 		// En els últims instants aceptem qualsevol oferta
-		if (getTime() > 0.99) {
-			return true;
-		}
+//		if (getTime() > 0.90) {
+//			return true;
+//		}
 		// Añadimos en la lista
 		this.memoria.add(offer);
 
@@ -60,25 +73,21 @@ public class ElAgenteVicente extends UPVAgent {
 		return getUtility(offer) >= S;
 	}
 
-//	private void update() {
-//		
-//		if (getTime() > umbralCambio) {
-//			beta = 3;//exponential(getTime());
-//			RU = RU;//*0.95;
-//		}
-//		S = 1 - (1 - RU) * Math.pow(getTime(), 1.0 / beta);
-//
-//	}
-//
-//	private double exponential(double time) {
-//		double res = -2*Math.log(1-getTime())-2*Math.log(umbralCambio)+betainicial;
-//		return res;
-//	}
-
 	/**
 	 * Tit for tat
 	 */
 	private void update() {
+		
+		// Cambios en el incrmento
+		if (cambios.size() > 0 && cambios.remove(0) && 
+				tiempo_camb >= getTime()
+				) {
+			tiempo_camb += 0.05;
+			max_incr *= CHANGE_MAX_INCR;
+			if (this._DEBUG) {
+				print("Cambiando incremento a : " + max_incr);
+			}
+		}
 
 		if (memoria.size() <= num_delta) {
 			// No empezamos la estrategia tit for tat hasta que no tenemos sufucientes datos
