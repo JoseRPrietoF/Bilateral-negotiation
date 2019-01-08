@@ -3,7 +3,7 @@ import java.util.*;
 import negotiator.Bid;
 import negoUPV.UPVAgent;
 
-public class ElAgenteVicente extends UPVAgent {
+public class ElAgentePistacho extends UPVAgent {
 
 	Bid last_moment_offer;
 	double S;
